@@ -27,7 +27,7 @@ module SanitizerAufwaermteil();
     	$dumpvars(0, tb.machine);
     	$dumpvars(0, tb.machine.i);
     	$dumpvars(0, tb.machine.o);
-    	$dumpvars(0, tb.machine.clock);
+    	$dumpvars(0, tb.machine.clock); //Test
   	end
 
 endmodule
