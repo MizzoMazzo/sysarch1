@@ -4,8 +4,6 @@ module MealyPattern(
 	output [1:0] o
 );
 
-// TODO Implementierung
-
 reg [1:0] out;
 reg s0=1, s1=0, s2=0, s3=0, s4=0, s5=0;
 
@@ -81,8 +79,6 @@ endmodule
 
 module MealyPatternTestbench();
 
-	// TODO Input Stimuli
-
     reg clock, i;
     wire [1:0] out;
 
@@ -102,9 +98,18 @@ module MealyPatternTestbench();
 
 
     // TODO Überprüfe Ausgaben
-initial
+/*initial
     begin
        $monitor("test %b, %b, %b", clock, i, out);
+    end*/
+
+initial
+    begin
+    #20;
+    if(out[1] == 1'b1 && out[0] == 1'b1)
+        $display("Simulation successful");
+    else
+        $display("Simulation error");
     end
 
 endmodule
