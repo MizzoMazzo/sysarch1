@@ -104,7 +104,9 @@ module MealyPatternTestbench();
     end*/
 
 initial
-    begin
+begin
+	$dumpfile("pattern.vcd");
+	$dumpvars;
     #20;
     if(out[1] == 1'b1 && out[0] == 1'b1)
         $display("Simulation successful");
