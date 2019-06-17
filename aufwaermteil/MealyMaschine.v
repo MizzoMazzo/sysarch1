@@ -63,7 +63,7 @@ initial
 endmodule
 
 module MealyPatternTestbench();
-reg clock, i;
+reg clock, i,test;
     wire [1:0] out;
 
 	MealyPattern machine(.clock(clock), .i(i), .o(out));
@@ -71,7 +71,7 @@ reg clock, i;
     //create input 0110101011
     initial
     begin
-        i <= 1'b0; #2; i <= 1'b1; #2; i <= 1'b1; #2; i <= 1'b0; #2; i <= 1'b1; #2; i <= 1'b0; #2; i <= 1'b1; #2; i <= 1'b0; #2; i <= 1'b1; #2; i <= 1'b1; #2; $finish;
+        i <= 1'b0; #2; i <= 1'b1; #2; i <= 1'b1; #2; i <= 1'b0; #2; i <= 1'b1; #2; i <= 1'b0; #2; i <= 1'b1; #2; i <= 1'b0; #2; i <= 1'b1; #2; i <= 1'b1; #1; $finish;
     end
 
     //create clock
@@ -89,8 +89,40 @@ initial
 
 initial
     begin
-    #20;
-    if(out[1] == 1'b1 && out[0] == 1'b1)
+        test <= 'b0;
+        $dumpfile("mealy.vcd");
+		$dumpvars;
+		#1;
+        if(out[1] != 'b0 || out[0] != 'b0)
+            test <= 'b1; else test <= test;
+        #2;
+        if(out[1] != 'b0 || out[0] != 'b0)
+            test <= 'b1; else test <= test;
+        #2;
+        if(out[1] != 'b0 || out[0] != 'b0)
+            test <= 'b1;else test <= test;
+        #2;
+        if(out[1] != 'b0 || out[0] != 'b0)
+            test <= 'b1;else test <= test;
+        #2;
+        if(out[1] != 'b0 || out[0] != 'b0)
+            test <= 'b1;else test <= test;
+        #2;
+        if(out[1] != 'b0 || out[0] != 'b1)
+            test <= 'b1;else test <= test;
+        #2;
+        if(out[1] != 'b1 || out[0] != 'b0)
+            test <= 'b1;else test <= test;
+        #2;
+        if(out[1] != 'b0 || out[0] != 'b1)
+            test <= 'b1;else test <= test;
+        #2;
+        if(out[1] != 'b1 || out[0] != 'b0)
+            test <= 'b1;else test <= test;
+        #2;
+        if(out[1] != 'b0 || out[0] != 'b1)
+            test <= 'b1;else test <= test;
+    if(test == 'b0)
         $display("Simulation successful");
     else
         $display("Simulation error");
