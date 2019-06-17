@@ -46,7 +46,9 @@ end
 
 always@(posedge clock) begin
 	if(tempstart && ~start) begin
-		if(!(i == 0) || !(count > 31)) begin
+		if(i < 0 || count > 31) begin
+			tempstart = 0;
+		end else begin
 			rr = rest << 1; //multiply with 2 by shifting
 			rt = rr + tempa[31];
 			tempa = tempa << 1;
@@ -63,8 +65,6 @@ always@(posedge clock) begin
 				quot[0] = qq;
 				count = count +1; i = i -1;
 			end
-		end else begin
-			tempstart = 0;
 		end
 	end else begin
 		tempstart = 0;
