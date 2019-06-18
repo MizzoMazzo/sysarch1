@@ -45,7 +45,7 @@ module Decoder(
 					memwrite = op[3];
 					memtoreg = 1;
 					dojump = 0;
-					alucontrol = // TODO // Addition effektive Adresse: Basisregister + Offset
+					alucontrol = 3'b010; // Addition effektive Adresse: Basisregister + Offset
 				end
 			6'b000100: // Branch Equal
 				begin
@@ -56,7 +56,7 @@ module Decoder(
 					memwrite = 0;
 					memtoreg = 0;
 					dojump = 0;
-					alucontrol = // TODO // Subtraktion
+					alucontrol = 3'b110; // Subtraktion
 				end
 			6'b001001: // Addition immediate unsigned
 				begin
@@ -67,7 +67,7 @@ module Decoder(
 					memwrite = 0;
 					memtoreg = 0;
 					dojump = 0;
-					alucontrol = // TODO // Addition
+					alucontrol = 3'b010; // Addition
 				end
 			6'b000010: // Jump immediate
 				begin
@@ -78,7 +78,7 @@ module Decoder(
 					memwrite = 0;
 					memtoreg = 0;
 					dojump = 1;
-					alucontrol = // TODO
+					alucontrol = 3'b010; //Addiere aktuelle Adresse + Immediate
 				end
 			default: // Default Fall
 				begin
@@ -89,7 +89,7 @@ module Decoder(
 					memwrite = 1'bx;
 					memtoreg = 1'bx;
 					dojump = 1'bx;
-					alucontrol = // TODO
+					alucontrol = 3'b011;
 				end
 		endcase
 	end
