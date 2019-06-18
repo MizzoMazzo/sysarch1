@@ -116,6 +116,64 @@ module ArithmeticLogicUnit(
 	output        zero
 );
 
+reg [31:0] res;
+reg ze;
+wire [2:0] alu = alucontrol[2:0];
+
+assign result = res;
+assign zero = ze;
 	// TODO Implementierung der ALU
+	
+always@* begin
+	case(alu)
+		3'b010: begin			//Addition
+			res = a + b;
+			if(res == 0) begin
+				ze = 1;
+			end else begin
+				ze = 0;
+			end
+		end
+		3'b110: begin			//Subtraktion
+			res = a - b;
+			if(res == 0) begin
+				ze = 1;
+			end else begin
+				ze = 0;
+			end
+		end
+		3'b000: begin			//And
+			res = a & b;
+			if(res == 0) begin
+				ze = 1;
+			end else begin
+				ze = 0;
+			end
+		end
+		3'b001: begin
+			res = a | b;		//Or
+			if(res == 0) begin
+				ze = 1;
+			end else begin
+				ze = 0;
+			end
+		end
+		3'b111: begin
+			if(a < b) begin		//SLT
+				res = 1;
+				ze = 0;
+			end else begin
+				res = 0;
+				ze = 1;
+			end
+		end
+		3'b011: begin			//LUI zero-extension
+			res = {b,{16{1'b0}}};
+		end
+		default: begin
+			res = 32'bx;
+		end
+	endcase
+end		
 
 endmodule

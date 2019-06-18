@@ -78,8 +78,31 @@ module Decoder(
 					memwrite = 0;
 					memtoreg = 0;
 					dojump = 1;
-					alucontrol = 3'b010; //Addiere aktuelle Adresse + Immediate
+					alucontrol = 3'bxxx; //egal
 				end
+			6'b001111: //Load upper immediate
+				begin
+					regwrite = 1;
+					destreg = instr[20:16];
+					alusrcbimm = 1;
+					dobranch = 0;
+					memwrite = 0;
+					memtoreg = 0;
+					dojump = 0;
+					alucontrol = 3'b011;
+				end
+			6'b001101: //ORI
+				begin
+					regwrite = 1;
+					destreg = instr[20:16];
+					alusrcbimm = 1;
+					dobranch = 0;
+					memwrite = 0;
+					memtoreg = 0;
+					dojump = 0;
+					alucontrol = 3'b001;
+				end
+					
 			default: // Default Fall
 				begin
 					regwrite = 1'bx;
