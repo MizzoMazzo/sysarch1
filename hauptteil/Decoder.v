@@ -32,7 +32,7 @@ module Decoder(
 						6'b100100: alucontrol = 3'b000; // and
 						6'b100101: alucontrol = 3'b001; // or
 						6'b101011: alucontrol = 3'b111; // set-less-than unsigned
-						default:   alucontrol = 3'b011; // undefiniert
+						default:   alucontrol = 3'bxxx; // undefiniert
 					endcase
 				end
 			6'b100011, // Lade Datenwort aus Speicher
@@ -102,7 +102,17 @@ module Decoder(
 					dojump = 0;
 					alucontrol = 3'b001;
 				end
-					
+			6'b000001:	//BLTZ
+				begin
+					regwrite = 0;
+					destreg = 5'bx;
+					alusrcbimm = 0;
+					dobranch = ~zero;
+					memwrite = 0;
+					memtoreg = 0;
+					dojump = 0;
+					alucontrol = 3'b111; 
+				end
 			default: // Default Fall
 				begin
 					regwrite = 1'bx;
