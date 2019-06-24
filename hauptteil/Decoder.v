@@ -8,7 +8,10 @@ module Decoder(
 	output reg [4:0] destreg,    // Nummer des (möglicherweise) zu schreibenden Zielregisters
 	output reg       regwrite,   // Schreibe ein Zielregister
 	output reg       dojump,     // Führe einen absoluten Sprung aus
-	output reg [2:0] alucontrol  // ALU-Kontroll-Bits
+	output reg [2:0] alucontrol,  // ALU-Kontroll-Bits
+	
+	output reg 		 mfhi,		 //MFHI
+	output reg		 mflo		 //MFLO
 );
 	// Extrahiere primären und sekundären Operationcode
 	wire [5:0] op = instr[31:26];
@@ -32,6 +35,41 @@ module Decoder(
 						6'b100100: alucontrol = 3'b000; // and
 						6'b100101: alucontrol = 3'b001; // or
 						6'b101011: alucontrol = 3'b111; // set-less-than unsigned
+						6'b010000: //MFHI
+							begin
+								regwrite = 1;
+								destreg = instr[15:11];	
+								alusrcbimm = 0;
+								dobranch = 0;
+								memwrite = 0;
+								memtoreg = 0;
+								dojump = 0;
+								alucontrol = 3'bxxx;
+								mfhi = 1;
+							end
+						6'b010010: //MFLO
+							begin
+								regwrite = 1;
+								destreg = instr[15:11];	
+								alusrcbimm = 0;
+								dobranch = 0;
+								memwrite = 0;
+								memtoreg = 0;
+								dojump = 0;
+								alucontrol = 3'bxxx;
+								mflo = 1;
+							end
+						6'b011001: //MULTU
+							begin
+								regwrite = 0;
+								destreg = instr[15:11];
+								alusrcbimm = 0;
+								dobranch = 0;
+								memwrite = 0;
+								memtoreg = 0;
+								dojump = 0;
+								alucontrol = 3'b100;
+							end
 						default:   alucontrol = 3'bxxx; // undefiniert
 					endcase
 				end
@@ -107,12 +145,15 @@ module Decoder(
 					regwrite = 0;
 					destreg = 5'bx;
 					alusrcbimm = 0;
-					dobranch = ~zero;
+					dobranch = zero;
 					memwrite = 0;
 					memtoreg = 0;
 					dojump = 0;
-					alucontrol = 3'b111; 
+					alucontrol = 3'b101; 
 				end
+			
+			
+			
 			default: // Default Fall
 				begin
 					regwrite = 1'bx;
@@ -122,7 +163,7 @@ module Decoder(
 					memwrite = 1'bx;
 					memtoreg = 1'bx;
 					dojump = 1'bx;
-					alucontrol = 3'b011;
+					alucontrol = 3'bxxx;
 				end
 		endcase
 	end

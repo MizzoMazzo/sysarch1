@@ -12,12 +12,16 @@ module Datapath(
 	input  [31:0] instr,
 	output [31:0] aluout,
 	output [31:0] writedata,
-	input  [31:0] readdata
+	input  [31:0] readdata,
+	
+	input		  mfhi,
+	input		  mflo
 );
 	wire [31:0] pc;
 	wire [31:0] signimm;
 	wire [31:0] srca, srcb, srcbimm;
 	wire [31:0] result;
+	wire [63:0] HILO;
 
 	// Fetch: Reiche PC an Instruktionsspeicher weiter und update PC
 	ProgramCounter pcenv(clk, reset, dobranch, signimm, jump, instr[25:0], pc);
@@ -27,7 +31,7 @@ module Datapath(
 	SignExtension se(instr[15:0], signimm);
 	assign srcbimm = alusrcbimm ? signimm : srcb;
 	// (b) Führe Berechnung in der ALU durch
-	ArithmeticLogicUnit alu(srca, srcbimm, alucontrol, aluout, zero);
+	ArithmeticLogicUnit alu(srca, srcbimm, alucontrol, aluout, zero, HILO);
 	// (c) Wähle richtiges Ergebnis aus
 	assign result = memtoreg ? readdata : aluout;
 
@@ -36,7 +40,7 @@ module Datapath(
 
 	// Write-Back: Stelle Operanden bereit und schreibe das jeweilige Resultat zurück
 	RegisterFile gpr(clk, regwrite, instr[25:21], instr[20:16],
-	               destreg, result, srca, srcb);
+	               destreg, result, srca, srcb, mfhi, mflo, HILO);
 endmodule
 
 module ProgramCounter(
@@ -80,17 +84,33 @@ module RegisterFile(
 	input         we3,
 	input  [4:0]  ra1, ra2, wa3,
 	input  [31:0] wd3,
-	output [31:0] rd1, rd2
+	output [31:0] rd1, rd2,
+	
+	input 		  mfhi,
+	input 		  mflo,
+	input  [63:0] HILO
 );
 	reg [31:0] registers[31:0];
+	wire [31:0] HI, LO;
+	
+	assign HI = (HILO != 0) ? HILO[63:32] : 0;
+	assign LO = (HILO != 0) ? HILO[31:0] : 0;
+	
+	
 
 	always @(posedge clk)
-		if (we3) begin
+		if (we3 && mfhi) begin
+			registers[wa3] <= HI;
+		end else if (we3 && mflo) begin
+			registers[wa3] <= LO;
+		end else if (we3) begin
 			registers[wa3] <= wd3;
 		end
 
+	
 	assign rd1 = (ra1 != 0) ? registers[ra1] : 0;
 	assign rd2 = (ra2 != 0) ? registers[ra2] : 0;
+
 endmodule
 
 module Adder(
@@ -113,15 +133,19 @@ module ArithmeticLogicUnit(
 	input  [31:0] a, b,
 	input  [2:0]  alucontrol,
 	output [31:0] result,
-	output        zero
+	output        zero,
+	
+	output [63:0] HILO
 );
 
 reg [31:0] res;
+reg [63:0] hilotemp;
 reg ze;
 wire [2:0] alu = alucontrol[2:0];
 
 assign result = res;
 assign zero = ze;
+assign HILO = hilotemp;
 	// TODO Implementierung der ALU
 	
 always@* begin
@@ -169,6 +193,18 @@ always@* begin
 		end
 		3'b011: begin			//LUI zero-extension
 			res = {b,{16{1'b0}}};
+		end
+		3'b100: begin			//MULTU
+			hilotemp = a * b;
+		end	
+		3'b101: begin			//BLTZ
+			if(a[31]) begin
+				res = 0;
+				ze = 1;
+			end else begin
+				res = 1;
+				ze = 0;
+			end
 		end
 		default: begin
 			res = 32'bx;
