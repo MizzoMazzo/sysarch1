@@ -11,7 +11,9 @@ module Decoder(
 	output reg [2:0] alucontrol,  // ALU-Kontroll-Bits
 	
 	output reg 		 mfhi,		 //MFHI
-	output reg		 mflo		 //MFLO
+	output reg		 mflo,		 //MFLO
+	output reg		 jal,		 //JAL
+	output reg 		 jr			 //JR
 );
 	// Extrahiere primären und sekundären Operationcode
 	wire [5:0] op = instr[31:26];
@@ -29,6 +31,10 @@ module Decoder(
 					memwrite = 0;
 					memtoreg = 0;
 					dojump = 0;
+					mfhi = 0;
+					mflo = 0;
+					jal = 0;
+					jr = 0;
 					case (funct)
 						6'b100001: alucontrol = 3'b010; // Addition unsigned
 						6'b100011: alucontrol = 3'b110; // Subtraktion unsigned
@@ -46,6 +52,9 @@ module Decoder(
 								dojump = 0;
 								alucontrol = 3'bxxx;
 								mfhi = 1;
+								mflo = 0;
+								jal = 0;
+								jr = 0;
 							end
 						6'b010010: //MFLO
 							begin
@@ -58,6 +67,9 @@ module Decoder(
 								dojump = 0;
 								alucontrol = 3'bxxx;
 								mflo = 1;
+								mfhi = 0;
+								jal = 0;
+								jr = 0;
 							end
 						6'b011001: //MULTU
 							begin
@@ -69,6 +81,25 @@ module Decoder(
 								memtoreg = 0;
 								dojump = 0;
 								alucontrol = 3'b100;
+								mfhi = 0;
+								mflo = 0;
+								jal = 0;
+								jr = 0;
+							end
+						6'b001000: //JR
+							begin
+								regwrite = 0;
+								destreg = instr[25:21];
+								alusrcbimm = 0;
+								dobranch = 0;
+								memwrite = 0;
+								memtoreg = 0;
+								dojump = 0;
+								alucontrol = 3'bxxx;
+								mfhi = 0;
+								mflo = 0;
+								jal = 0;
+								jr = 1;
 							end
 						default:   alucontrol = 3'bxxx; // undefiniert
 					endcase
@@ -84,6 +115,10 @@ module Decoder(
 					memtoreg = 1;
 					dojump = 0;
 					alucontrol = 3'b010; // Addition effektive Adresse: Basisregister + Offset
+					mfhi = 0;
+					mflo = 0;
+					jal = 0;
+					jr = 0;
 				end
 			6'b000100: // Branch Equal
 				begin
@@ -95,6 +130,10 @@ module Decoder(
 					memtoreg = 0;
 					dojump = 0;
 					alucontrol = 3'b110; // Subtraktion
+					mfhi = 0;
+					mflo = 0;
+					jal = 0;
+					jr = 0;
 				end
 			6'b001001: // Addition immediate unsigned
 				begin
@@ -106,6 +145,10 @@ module Decoder(
 					memtoreg = 0;
 					dojump = 0;
 					alucontrol = 3'b010; // Addition
+					mfhi = 0;
+					mflo = 0;
+					jal = 0;
+					jr = 0;
 				end
 			6'b000010: // Jump immediate
 				begin
@@ -117,6 +160,10 @@ module Decoder(
 					memtoreg = 0;
 					dojump = 1;
 					alucontrol = 3'bxxx; //egal
+					mfhi = 0;
+					mflo = 0;
+					jal = 0;
+					jr = 0;
 				end
 			6'b001111: //Load upper immediate
 				begin
@@ -128,6 +175,10 @@ module Decoder(
 					memtoreg = 0;
 					dojump = 0;
 					alucontrol = 3'b011;
+					mfhi = 0;
+					mflo = 0;
+					jal = 0;
+					jr = 0;
 				end
 			6'b001101: //ORI
 				begin
@@ -139,6 +190,10 @@ module Decoder(
 					memtoreg = 0;
 					dojump = 0;
 					alucontrol = 3'b001;
+					mfhi = 0;
+					mflo = 0;
+					jal = 0;
+					jr = 0;
 				end
 			6'b000001:	//BLTZ
 				begin
@@ -150,10 +205,26 @@ module Decoder(
 					memtoreg = 0;
 					dojump = 0;
 					alucontrol = 3'b101; 
+					mfhi = 0;
+					mflo = 0;
+					jal = 0;
+					jr = 0;
 				end
-			
-			
-			
+			6'b000011: 	//JAL
+				begin
+					regwrite = 1;
+					destreg = 5'b11111;
+					alusrcbimm = 0;
+					dobranch = 0;
+					memwrite = 0;
+					memtoreg = 0;
+					dojump = 1;
+					alucontrol = 3'bxxx;
+					jal = 1;
+					mfhi = 0;
+					mflo = 0;
+					jr = 0;		
+				end
 			default: // Default Fall
 				begin
 					regwrite = 1'bx;
@@ -164,6 +235,10 @@ module Decoder(
 					memtoreg = 1'bx;
 					dojump = 1'bx;
 					alucontrol = 3'bxxx;
+					mfhi = 0;
+					mflo = 0;
+					jal = 0;
+					jr = 0;
 				end
 		endcase
 	end

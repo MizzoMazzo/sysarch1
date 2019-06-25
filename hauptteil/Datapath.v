@@ -15,16 +15,19 @@ module Datapath(
 	input  [31:0] readdata,
 	
 	input		  mfhi,
-	input		  mflo
+	input		  mflo,
+	input		  jal,
+	input		  jr
 );
-	wire [31:0] pc;
+	wire [31:0] pc, incrpc, jrout;
 	wire [31:0] signimm;
 	wire [31:0] srca, srcb, srcbimm;
 	wire [31:0] result;
 	wire [63:0] HILO;
+	
 
 	// Fetch: Reiche PC an Instruktionsspeicher weiter und update PC
-	ProgramCounter pcenv(clk, reset, dobranch, signimm, jump, instr[25:0], pc);
+	ProgramCounter pcenv(clk, reset, dobranch, signimm, jump, instr[25:0], pc, incrpc, jr, jrout);
 
 	// Execute:
 	// (a) Wähle Operanden aus
@@ -40,7 +43,7 @@ module Datapath(
 
 	// Write-Back: Stelle Operanden bereit und schreibe das jeweilige Resultat zurück
 	RegisterFile gpr(clk, regwrite, instr[25:21], instr[20:16],
-	               destreg, result, srca, srcb, mfhi, mflo, HILO);
+	               destreg, result, srca, srcb, mfhi, mflo, HILO, jal, incrpc, jr, jrout);
 endmodule
 
 module ProgramCounter(
@@ -50,11 +53,17 @@ module ProgramCounter(
 	input  [31:0] branchoffset,
 	input         dojump,
 	input  [25:0] jumptarget,
-	output [31:0] progcounter
+	output [31:0] progcounter,
+	
+	output [31:0] incrpc,
+	input		  jr,
+	input  [31:0] jrout
+	
 );
 	reg  [31:0] pc;
 	wire [31:0] incpc, branchpc, nextpc;
 
+	assign incrpc = incpc;
 	// Inkrementiere Befehlszähler um 4 (word-aligned)
 	Adder pcinc(.a(pc), .b(32'b100), .cin(1'b0), .y(incpc));
 	// Berechne mögliches (PC-relatives) Sprungziel
@@ -62,7 +71,8 @@ module ProgramCounter(
 	// Wähle den nächsten Wert des Befehlszählers aus
 	assign nextpc = dojump   ? {incpc[31:28], jumptarget, 2'b00} :
 	                dobranch ? branchpc :
-	                           incpc;
+	                jr ? jrout :
+	                incpc;
 
 	// Der Befehlszähler ist ein Speicherbaustein
 	always @(posedge clk)
@@ -88,7 +98,11 @@ module RegisterFile(
 	
 	input 		  mfhi,
 	input 		  mflo,
-	input  [63:0] HILO
+	input  [63:0] HILO,
+	input		  jal,
+	input  [31:0] pc4,
+	input		  jr,
+	output [31:0] jrout
 );
 	reg [31:0] registers[31:0];
 	wire [31:0] HI, LO;
@@ -103,11 +117,13 @@ module RegisterFile(
 			registers[wa3] <= HI;
 		end else if (we3 && mflo) begin
 			registers[wa3] <= LO;
+		end else if (we3 && jal) begin
+			registers[31] <= pc4;
 		end else if (we3) begin
 			registers[wa3] <= wd3;
 		end
 
-	
+	assign jrout = jr ? registers[ra1] : 0;
 	assign rd1 = (ra1 != 0) ? registers[ra1] : 0;
 	assign rd2 = (ra2 != 0) ? registers[ra2] : 0;
 
