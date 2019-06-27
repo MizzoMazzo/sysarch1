@@ -1,0 +1,22 @@
+2573390:
+    Mustererkennung    
+    Konstanten laden         
+    Verzweigungen               
+                       
+
+2573553:
+    Aufwärmteil Divisionsschaltwerk
+    MULTU               
+                          
+
+2573268:
+    ALU                 
+    Funktionsaufrufe      
+                          
+
+
+
+
+
+
+
